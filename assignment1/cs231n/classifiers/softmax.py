@@ -30,7 +30,26 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]
+  num_class = W.shape[1]
+  for i in np.arange(num_train):
+    score = X[i].dot(W)
+    normalize_factor = np.max(score)
+    normalized_score = score - normalize_factor
+    exp_score = np.exp(normalized_score)
+    entropy = -1 * np.log(exp_score[y[i]] / np.sum(exp_score))
+    #entropy = np.log(np.sum(exp_score)) - normalized_score[y[i]]
+    loss += entropy
+    for j in np.arange(num_class):
+        if j == y[i]:
+            dW[:, j] += (np.exp(-entropy) - 1) * X[i, :]
+        else:
+            dW[:, j] += (np.exp(-entropy) * exp_score[j] / exp_score[y[i]]) * X[i, :]
+    
+  loss /= num_train
+  dW /= num_train
+  loss += np.sum(W * W) * reg
+  dW += 2 * reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -54,7 +73,24 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]
+  num_class = W.shape[1]
+  score = X.dot(W)
+  normalize_factor = np.amax(score, axis = 1)
+  normalized_score = score - normalize_factor[:, np.newaxis]
+  exp_score = np.exp(normalized_score)
+  entropy = -1 * np.log(exp_score[np.arange(num_train), y] / np.sum(exp_score, axis = 1))
+  loss += np.sum(entropy)
+  first_derivative = np.exp(-entropy)[:, np.newaxis] * exp_score / exp_score[np.arange(num_train), y][:, np.newaxis]
+  dW += np.transpose(X).dot(first_derivative)
+  #for i in np.arange(num_train):
+  #      dW[:, y[i]] -= X[i, :]
+  for j in np.arange(num_class):
+        dW[:, j] -= np.sum(X[y == j], axis = 0)
+  loss /= num_train
+  dW /= num_train
+  loss += np.sum(W * W) * reg
+  dW += 2 * reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
