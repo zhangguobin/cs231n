@@ -78,7 +78,8 @@ def svm_loss_vectorized(W, X, y, reg):
   scores = X.dot(W)
   correct_class_score = scores[np.arange(num_train), y];
   margin = scores - correct_class_score[:, np.newaxis] + 1
-  loss += (np.sum(margin[margin > 0]) - num_train) / num_train
+  margin[np.arange(num_train), y] = 0
+  loss += np.sum(margin[margin > 0]) / num_train
   loss += reg * np.sum(W * W)
   #############################################################################
   #                             END OF YOUR CODE                              #
@@ -94,15 +95,10 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  dW += np.sum(X, axis = 0)[:, np.newaxis]
-  
-  for j in np.arange(num_classes):
-    X_j_count = np.sum(margin[y == j] > 0, axis = 1)
-    dW[:, j] -= np.sum(X[y == j] * X_j_count[:, np.newaxis], axis = 0)
-    #dW[:, j] -= np.sum(X[y == j], axis = 0) * num_classes
-    #class_j_score_0_count = np.sum((margin[y == j] <= 0), axis = 1)
-    #dW[:, j] += np.sum(X[y == j] * class_j_score_0_count[:, np.newaxis], axis = 0)
-    dW[:, j] -= np.sum(X[margin[:,j] < 0], axis = 0)
+  d_L_f = np.zeros(scores.shape)
+  d_L_f[margin > 0] = 1
+  d_L_f[np.arange(num_train), y] = -1 * np.sum(margin > 0, axis = 1)
+  dW = np.transpose(X).dot(d_L_f)
   dW /= num_train
   dW += 2 * reg * W
   #############################################################################

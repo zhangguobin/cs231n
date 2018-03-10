@@ -81,12 +81,9 @@ def softmax_loss_vectorized(W, X, y, reg):
   exp_score = np.exp(normalized_score)
   entropy = -1 * np.log(exp_score[np.arange(num_train), y] / np.sum(exp_score, axis = 1))
   loss += np.sum(entropy)
-  first_derivative = np.exp(-entropy)[:, np.newaxis] * exp_score / exp_score[np.arange(num_train), y][:, np.newaxis]
-  dW += np.transpose(X).dot(first_derivative)
-  #for i in np.arange(num_train):
-  #      dW[:, y[i]] -= X[i, :]
-  for j in np.arange(num_class):
-        dW[:, j] -= np.sum(X[y == j], axis = 0)
+  d_L_f = np.exp(-entropy)[:, np.newaxis] * exp_score / exp_score[np.arange(num_train), y][:, np.newaxis]
+  d_L_f[np.arange(num_train), y] -= 1
+  dW += np.transpose(X).dot(d_L_f)
   loss /= num_train
   dW /= num_train
   loss += np.sum(W * W) * reg
