@@ -205,7 +205,6 @@ class FullyConnectedNet(object):
                 key_beta = 'beta' + str(layer_id)
                 self.params[key_r] = np.ones(output_size)
                 self.params[key_beta] = np.zeros(output_size)
-        pass
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -246,6 +245,8 @@ class FullyConnectedNet(object):
         # behave differently during training and testing.
         if self.use_dropout:
             self.dropout_param['mode'] = mode
+            if mode == 'train':
+                do_cache = {}
         if self.use_batchnorm:
             for bn_param in self.bn_params:
                 bn_param['mode'] = mode
@@ -288,11 +289,14 @@ class FullyConnectedNet(object):
                     out, cache = affine_bn_relu_forward(X_input, W, b, r, beta, self.bn_params[idx-1])
                 else:
                     out, cache = affine_relu_forward(X_input, W, b)
+                if self.use_dropout:
+                    out, doc = dropout_forward(out, self.dropout_param)
+                    if mode == 'train':
+                        do_cache[key_cache] = doc
             else:
                 out, cache = affine_forward(X_input, W, b)
             temp[key_cache] = cache
         scores = out
-        pass
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -336,6 +340,8 @@ class FullyConnectedNet(object):
             if idx == self.num_layers:
                 dout, dw, db = affine_backward(d_L, cache)
             else:
+                if self.use_dropout:
+                    dout = dropout_backward(dout, do_cache[key_cache])
                 if self.use_batchnorm:
                     dout, dw, db, dr, dbeta = affine_bn_relu_backward(dout, cache)
                     dr += self.reg * r
@@ -349,7 +355,6 @@ class FullyConnectedNet(object):
             db += self.reg * b
             grads[key_W] = dw
             grads[key_b] = db
-        pass
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
