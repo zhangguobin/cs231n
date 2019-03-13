@@ -139,14 +139,19 @@ class CaptioningRNN(object):
         ############################################################################
         h0 = np.matmul(features, W_proj) + b_proj
         x, cache_x = word_embedding_forward(captions_in, W_embed)
-        # branches for vanilla or LSTM
-        next_h, cache_h = rnn_forward(x, h0, Wx, Wh, b)
+        if self.cell_type == 'rnn':
+            next_h, cache_h = rnn_forward(x, h0, Wx, Wh, b)
+        else:
+            next_h, cache_h = lstm_forward(x, h0, Wx, Wh, b)
         scores, caches_s = temporal_affine_forward(next_h, W_vocab, b_vocab)
         
         loss, dscores = temporal_softmax_loss(scores, captions_out, mask)
         
         dnext_h, dW_vocab, db_vocab = temporal_affine_backward(dscores, caches_s)
-        dx, dh0, dWx, dWh, db = rnn_backward(dnext_h, cache_h)
+        if self.cell_type == 'rnn':
+            dx, dh0, dWx, dWh, db = rnn_backward(dnext_h, cache_h)
+        else:
+            dx, dh0, dWx, dWh, db = lstm_backward(dnext_h, cache_h)
         dW_embed = word_embedding_backward(dx, cache_x)
         dW_proj = np.matmul(features.T, dh0)
         db_proj = np.sum(dh0, axis=0)
@@ -159,7 +164,6 @@ class CaptioningRNN(object):
         grads['b'] = db
         grads['W_vocab'] = dW_vocab
         grads['b_vocab'] = db_vocab
-        pass
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -226,13 +230,19 @@ class CaptioningRNN(object):
         
         captions[:, 0] = self._start
         prev_h = h0
+        if self.cell_type == 'lstm':
+            H = h0.shape[1]
+            prev_c = np.zeros((N, H), h0.dtype)
         for t in np.arange(1, max_length, 1):
-            next_h, _ = rnn_step_forward(x, prev_h, Wx, Wh, b)
+            if self.cell_type == 'rnn':
+                next_h, _ = rnn_step_forward(x, prev_h, Wx, Wh, b)
+            else:
+                next_h, next_c, _ = lstm_step_forward(x, prev_h, prev_c, Wx, Wh, b)
+                prev_c = next_c
             scores = np.matmul(next_h, W_vocab) + b_vocab
             captions[:, t] = np.argmax(scores, axis=1)
             x = W_embed[captions[:, t], :]
             prev_h = next_h
-        pass
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
