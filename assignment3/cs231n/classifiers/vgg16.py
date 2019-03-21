@@ -1,96 +1,111 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow import layers
+
+NUM_CLASSES = 1000
 
 # copied from Keras vgg16.py with some modifications
 class VGG16(object):
-    def extract_features(self, inputs=None):
+    def extract_features(self, inputs=None, reuse=tf.AUTO_REUSE):
         all_layers = []
         if inputs is None:
             inputs = self.image
-        x = layers.Input(shape=(None, None, 3), tensor=inputs)
+        x = inputs
         # Block 1
-        x = layers.Conv2D(64, (3, 3),
+        x = layers.conv2d(x, 64, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block1_conv1')(x)
+                          name='block1_conv1',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(64, (3, 3),
+        x = layers.conv2d(x, 64, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block1_conv2')(x)
+                          name='block1_conv2',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
+        x = layers.max_pooling2d(x, (2, 2), strides=(2, 2), name='block1_pool')
         all_layers.append(x)
 
         # Block 2
-        x = layers.Conv2D(128, (3, 3),
+        x = layers.conv2d(x, 128, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block2_conv1')(x)
+                          name='block2_conv1',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(128, (3, 3),
+        x = layers.conv2d(x, 128, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block2_conv2')(x)
+                          name='block2_conv2',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
+        x = layers.max_pooling2d(x, (2, 2), strides=(2, 2), name='block2_pool')
         all_layers.append(x)
 
         # Block 3
-        x = layers.Conv2D(256, (3, 3),
+        x = layers.conv2d(x, 256, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block3_conv1')(x)
+                          name='block3_conv1',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(256, (3, 3),
+        x = layers.conv2d(x, 256, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block3_conv2')(x)
+                          name='block3_conv2',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(256, (3, 3),
+        x = layers.conv2d(x, 256, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block3_conv3')(x)
+                          name='block3_conv3',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
+        x = layers.max_pooling2d(x, (2, 2), strides=(2, 2), name='block3_pool')
         all_layers.append(x)
 
         # Block 4
-        x = layers.Conv2D(512, (3, 3),
+        x = layers.conv2d(x, 512, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block4_conv1')(x)
+                          name='block4_conv1',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(512, (3, 3),
+        x = layers.conv2d(x, 512, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block4_conv2')(x)
+                          name='block4_conv2',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(512, (3, 3),
+        x = layers.conv2d(x, 512, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block4_conv3')(x)
+                          name='block4_conv3',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
+        x = layers.max_pooling2d(x, (2, 2), strides=(2, 2), name='block4_pool')
         all_layers.append(x)
 
         # Block 5
-        x = layers.Conv2D(512, (3, 3),
+        x = layers.conv2d(x, 512, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block5_conv1')(x)
+                          name='block5_conv1',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(512, (3, 3),
+        x = layers.conv2d(x, 512, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block5_conv2')(x)
+                          name='block5_conv2',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.Conv2D(512, (3, 3),
+        x = layers.conv2d(x, 512, (3, 3),
                           activation='relu',
                           padding='same',
-                          name='block5_conv3')(x)
+                          name='block5_conv3',
+                          reuse=reuse)
         all_layers.append(x)
-        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
+        x = layers.max_pooling2d(x, (2, 2), strides=(2, 2), name='block5_pool')
         all_layers.append(x)
         return all_layers
 
@@ -99,11 +114,11 @@ class VGG16(object):
         Inputs:
         - save_path: path to TensorFlow checkpoint
         - sess: TensorFlow session
+        - input: optional input to the model. If None, will use placeholder for input.
         """
-        self.image = tf.placeholder('float',shape=[None,None,None,3],name='input_image')
-        self.all_layers = self.extract_features(self.image)
+        self.image = tf.placeholder('float',shape=[1,None,None,3],name='input_image')
+        self.all_layers = self.extract_features(self.image, reuse=tf.AUTO_REUSE)
         
         if save_path is not None:
             saver = tf.train.Saver()
-            tf.get_variable_scope().reuse_variables()
             saver.restore(sess, save_path)
