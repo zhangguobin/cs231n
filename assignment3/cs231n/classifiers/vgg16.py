@@ -1,12 +1,13 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-NUM_CLASSES = 1000
-
+# copied from Keras vgg16.py with some modifications
 class VGG16(object):
-    def extract_features(self):
+    def extract_features(self, inputs=None):
         all_layers = []
-        x = layers.Input(shape=(None, None, 3), tensor=self.image)
+        if inputs is None:
+            inputs = self.image
+        x = layers.Input(shape=(None, None, 3), tensor=inputs)
         # Block 1
         x = layers.Conv2D(64, (3, 3),
                           activation='relu',
@@ -98,23 +99,11 @@ class VGG16(object):
         Inputs:
         - save_path: path to TensorFlow checkpoint
         - sess: TensorFlow session
-        - input: optional input to the model. If None, will use placeholder for input.
         """
         self.image = tf.placeholder('float',shape=[None,None,None,3],name='input_image')
-        self.labels = tf.placeholder('int32', shape=[None], name='labels')
-        self.all_layers = self.extract_features()
-        self.features = self.all_layers[-1]
-        
-        # Classification block
-        # x = layers.Flatten(name='flatten')(self.features)
-#         x = tf.reshape(self.features,[-1, 4096]) # hack
-#         x = layers.Dense(4096, activation='relu', name='fc1')(x)
-#         self.all_layers.append(x)
-#         x = layers.Dense(4096, activation='relu', name='fc2')(x)
-#         self.all_layers.append(x)
-#         x = layers.Dense(NUM_CLASSES, activation='softmax', name='predictions')(x)
-#         self.all_layers.append(x)
+        self.all_layers = self.extract_features(self.image)
         
         if save_path is not None:
             saver = tf.train.Saver()
+            tf.get_variable_scope().reuse_variables()
             saver.restore(sess, save_path)
