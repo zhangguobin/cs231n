@@ -1,8 +1,6 @@
 import tensorflow as tf
 from tensorflow import layers
 
-NUM_CLASSES = 1000
-
 # copied from Keras vgg16.py with some modifications
 class VGG16(object):
     def extract_features(self, inputs=None, reuse=tf.AUTO_REUSE):
