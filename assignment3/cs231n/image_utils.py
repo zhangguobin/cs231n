@@ -36,22 +36,44 @@ def blur_image(X):
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 SQUEEZENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
+# for SqueezeNet
+# def preprocess_image(img):
+#     """Preprocess an image for squeezenet.
+    
+#     Subtracts the pixel mean and divides by the standard deviation.
+#     """
+#     return (img.astype(np.float32)/255.0 - SQUEEZENET_MEAN) / SQUEEZENET_STD
+
+# for VGG
+VGG_MEAN_BGR = np.array([103.939, 116.779, 123.68], dtype=np.float32)
 def preprocess_image(img):
     """Preprocess an image for squeezenet.
-    
+
     Subtracts the pixel mean and divides by the standard deviation.
     """
-    return (img.astype(np.float32)/255.0 - SQUEEZENET_MEAN) / SQUEEZENET_STD
+    img = np.flip(img, 2)
+    return (img.astype(np.float32) - VGG_MEAN_BGR[None, None])
 
+# for SqueezeNet
+# def deprocess_image(img, rescale=False):
+#     """Undo preprocessing on an image and convert back to uint8."""
+#     img = (img * SQUEEZENET_STD + SQUEEZENET_MEAN)
+#     if rescale:
+#         vmin, vmax = img.min(), img.max()
+#         img = (img - vmin) / (vmax - vmin)
+#     return np.clip(255 * img, 0.0, 255.0).astype(np.uint8)
 
+# for VGG
 def deprocess_image(img, rescale=False):
     """Undo preprocessing on an image and convert back to uint8."""
-    img = (img * SQUEEZENET_STD + SQUEEZENET_MEAN)
+    img = img  + VGG_MEAN_BGR[None, None]
     if rescale:
         vmin, vmax = img.min(), img.max()
         img = (img - vmin) / (vmax - vmin)
-    return np.clip(255 * img, 0.0, 255.0).astype(np.uint8)
-
+        img = np.clip(255 * img, 0.0, 255.0).astype(np.uint8)
+    else:
+        img = np.clip(img, 0.0, 255.0).astype(np.uint8)
+    return np.flip(img, 2)
 
 def image_from_url(url):
     """

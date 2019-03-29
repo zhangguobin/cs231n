@@ -1,7 +1,5 @@
 import tensorflow as tf
 
-NUM_CLASSES = 1000
-
 def fire_module(x,inp,sp,e11p,e33p):
     with tf.variable_scope("fire"):
         with tf.variable_scope("squeeze"):

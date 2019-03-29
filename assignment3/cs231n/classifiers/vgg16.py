@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import layers
 
 # copied from Keras vgg16.py with some modifications
+# ensure input is aligned with default data_format of tensorflow
 class VGG16(object):
     def extract_features(self, inputs=None, reuse=tf.AUTO_REUSE):
         all_layers = []
@@ -114,7 +115,7 @@ class VGG16(object):
         - sess: TensorFlow session
         - input: optional input to the model. If None, will use placeholder for input.
         """
-        self.image = tf.placeholder('float',shape=[1,None,None,3],name='input_image')
+        self.image = tf.placeholder('float',shape=[1,None,None,3],name='input_image') # warning on data format
         self.all_layers = self.extract_features(self.image, reuse=tf.AUTO_REUSE)
         
         if save_path is not None:
